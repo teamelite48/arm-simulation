@@ -84,9 +84,9 @@ function updatePosition() {
 
 function handleCollisions() {
 
-	if (effector.xPos < 0) {
-		effector.xPos = 0;
-	}
+	// if (effector.xPos < 0) {
+	// 	effector.xPos = 0;
+	// }
 
 	if (effector.yPos < 0) {
 		effector.yPos = 0;
@@ -136,7 +136,7 @@ function drawEffector() {
 
 	ctx.beginPath();
 	ctx.moveTo(effector.xPos, effector.yPos);
-	ctx.lineTo(effector.xPos + 32, effector.yPos, 1);
+	ctx.lineTo(effector.xPos + 5, effector.yPos, 1);
 	ctx.strokeStyle = 'red';
 	ctx.stroke();
 
