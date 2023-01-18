@@ -65,6 +65,12 @@ function initControls() {
 		else if (event.key === "ArrowRight") {
 			effector.xVel = 1;
 		}
+
+		if (event.code === "Space") {
+			effector.xPos = effector.xPos * -1;
+		}
+
+
 	});
 
 	document.addEventListener('keyup', (event) => {
@@ -128,7 +134,6 @@ function drawEffector() {
 
 	ctx.beginPath()
 	ctx.arc(0, 0, radius, 0, degreesToRadians(360), true);
-	ctx.strokeStyle = 'black'
 	ctx.stroke();
 
 	ctx.lineWidth = 5;
@@ -194,10 +199,16 @@ function inverseKinematics() {
 	const a1 = armLength1;
 	const a2 = armLength2;
 
-	const q2 = Math.acos((x**2 + y**2 - a1**2 - a2**2) / (2 * a1 * a2));
-	const q1 = Math.atan2(y, x) + Math.atan2(a2 * Math.sin(q2), a1 + (a2 * Math.cos(q2)));
-
-	return [ q1, q2 ];
+	if (x >= 0) {
+		const q2 = Math.acos((x**2 + y**2 - a1**2 - a2**2) / (2 * a1 * a2));
+		const q1 = Math.atan2(y, x) + Math.atan2(a2 * Math.sin(q2), a1 + (a2 * Math.cos(q2)));
+		return [ q1, q2 ];
+	}
+	else {
+		const q2 = -Math.acos((x**2 + y**2 - a1**2 - a2**2) / (2 * a1 * a2));
+		const q1 = Math.atan2(y, x) + Math.atan2(a2 * Math.sin(q2), a1 + (a2 * Math.cos(q2)));
+		return [ q1, q2 ];
+	}
 }
 
 function xPosRelativeToCenterPoint() {
