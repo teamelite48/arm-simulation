@@ -24,6 +24,10 @@ const armLength1 = 112;
 const armLength2 = 112;
 const radius = armLength1 + armLength2;
 
+let theta1 = 0;
+let theta2 = 0;
+let theta3 = 0;
+
 init();
 
 function init() {
@@ -41,7 +45,7 @@ function init() {
 function run() {
 
 	updatePosition();
-	handleCollisions();
+	calculateThetas();
 	draw();
 
 	logDebugInfo()
@@ -69,8 +73,6 @@ function initControls() {
 		if (event.code === "Space") {
 			effector.xPos = effector.xPos * -1;
 		}
-
-
 	});
 
 	document.addEventListener('keyup', (event) => {
@@ -84,38 +86,44 @@ function initControls() {
 }
 
 function updatePosition() {
-	effector.xPos += effector.xVel * speed;
-	effector.yPos += effector.yVel * speed;
+
+	const desiredXPos = effector.xPos + effector.xVel * speed;
+	const desiredYPos = effector.yPos +effector.yVel * speed;
+
+	if (isMovementAllowed(desiredXPos, desiredYPos)) {
+		effector.xPos = desiredXPos;
+		effector.yPos = desiredYPos
+	}
 }
 
-function handleCollisions() {
+function isMovementAllowed(x, y) {
 
-	// if (effector.xPos < 0) {
-	// 	effector.xPos = 0;
-	// }
-
-	if (effector.yPos < 0) {
-		effector.yPos = 0;
+	if (y < 0) {
+		return false;
 	}
 
-	const yPosUpperBound = Math.sqrt(Math.pow(radius, 2) - Math.pow(effector.xPos, 2));
-	const xPosUpperBound = Math.sqrt(Math.pow(radius, 2) - Math.pow(effector.yPos, 2));
+	const yPosUpperBound = Math.sqrt(Math.pow(radius, 2) - Math.pow(x, 2));
 
-	if (effector.yPos > yPosUpperBound) {
-		effector.yPos = yPosUpperBound;
+	if (y > yPosUpperBound) {
+		return false;
 	}
-	if (effector.xPos > xPosUpperBound) {
-		effector.xPos = xPosUpperBound;
+
+	const xPosUpperBound = Math.sqrt(Math.pow(radius, 2) - Math.pow(y, 2));
+
+	if (x > xPosUpperBound) {
+		return false;
 	}
+
+	return true
 }
 
 function draw() {
 	ctx.clearRect(-(canvasWidth / 2), -(canvasHeight / 2), canvasWidth, canvasHeight);
-	drawEffector();
+	drawSpace()
+	drawArm();
 }
 
-function drawEffector() {
-
+function drawSpace() {
 	ctx.lineWidth = 1;
 	ctx.strokeStyle = "black";
 
@@ -138,16 +146,23 @@ function drawEffector() {
 
 	ctx.lineWidth = 5;
 
+}
+
+function drawArm() {
+	drawEffector()
+	const arm1EndPoint = drawArmLength1();
+	drawArmLength2(arm1EndPoint);
+}
+
+function drawEffector() {
+
+	const endPoint = findEndPoint(effector.xPos, effector.yPos, theta1 + theta2 + theta3, 32)
 
 	ctx.beginPath();
 	ctx.moveTo(effector.xPos, effector.yPos);
-	ctx.lineTo(effector.xPos + 5, effector.yPos, 1);
+	ctx.lineTo(endPoint.x, endPoint.y);
 	ctx.strokeStyle = 'red';
 	ctx.stroke();
-
-
-	const arm1EndPoint = drawArmLength1();
-	drawArmLength2(arm1EndPoint);
 }
 
 function findEndPoint(x0, y0, radians, length) {
@@ -159,8 +174,6 @@ function findEndPoint(x0, y0, radians, length) {
 }
 
 function drawArmLength1() {
-	const [theta1, theta2] = inverseKinematics();
-
 
 	const endPoint = findEndPoint(0, 0, theta1, armLength1);
 
@@ -174,11 +187,8 @@ function drawArmLength1() {
 }
 
 function drawArmLength2(startPoint) {
-	const [theta1, theta2] = inverseKinematics();
 
-	console.log(radiansToDegrees(theta1), radiansToDegrees(theta2));
-
-	const endPoint = findEndPoint(startPoint.x, startPoint.y, -theta2 + theta1, armLength1);
+	const endPoint = findEndPoint(startPoint.x, startPoint.y, theta1 + theta2, armLength1);
 
 	ctx.beginPath();
 	ctx.moveTo(startPoint.x, startPoint.y);
@@ -191,24 +201,24 @@ function degreesToRadians(degrees) {
 	return (degrees * Math.PI) / 180;
 }
 
-function inverseKinematics() {
+function calculateThetas() {
 
 	const x = effector.xPos;
 	const y = effector.yPos;
 
-	const a1 = armLength1;
-	const a2 = armLength2;
+	const a = armLength1;
+	const b = armLength2;
 
-	if (x >= 0) {
-		const q2 = Math.acos((x**2 + y**2 - a1**2 - a2**2) / (2 * a1 * a2));
-		const q1 = Math.atan2(y, x) + Math.atan2(a2 * Math.sin(q2), a1 + (a2 * Math.cos(q2)));
-		return [ q1, q2 ];
-	}
-	else {
-		const q2 = -Math.acos((x**2 + y**2 - a1**2 - a2**2) / (2 * a1 * a2));
-		const q1 = Math.atan2(y, x) + Math.atan2(a2 * Math.sin(q2), a1 + (a2 * Math.cos(q2)));
-		return [ q1, q2 ];
-	}
+	const r = Math.sqrt(x**2 + y**2);
+
+	const theta = lawOfCosines(y, r, x);
+	const alpha = lawOfCosines(b, a, r);
+	theta1 = theta + alpha;
+
+	const beta = lawOfCosines(r, a, b);
+	theta2 = -Math.PI + beta;
+
+	theta3 = -theta2 - theta1 + degreesToRadians(0);
 }
 
 function xPosRelativeToCenterPoint() {
@@ -220,8 +230,13 @@ function yPosRelativeToCenterPoint() {
 }
 
 function logDebugInfo() {
+	console.log(radiansToDegrees(theta1), radiansToDegrees(theta2), radiansToDegrees(theta3));
 }
 
 function radiansToDegrees(x) {
 	return x * 180 / Math.PI;
+}
+
+function lawOfCosines(a, b, c) {
+	return Math.acos((b**2 + c**2 - a**2) / (2 * b * c))
 }
