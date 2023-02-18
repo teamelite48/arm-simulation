@@ -218,7 +218,7 @@ function calculateThetas() {
 	const beta = lawOfCosines(r, a, b);
 	theta2 = -Math.PI + beta;
 
-	theta3 = -theta2 - theta1 + degreesToRadians(0);
+	theta3 = -theta2 - theta1 + degreesToRadians(45);
 }
 
 function xPosRelativeToCenterPoint() {
