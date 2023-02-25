@@ -21,7 +21,7 @@ const effector = {
 
 const scale = 100 / 1;
 
-const speed = 2;
+const speed = 1;
 const a1 =  0.9525 * scale;
 const a2 = 0.81838079 * scale;
 
@@ -56,7 +56,8 @@ function run() {
 	calculateThetas();
 	draw();
 
-	logDebugInfo()
+	updateDashbaord();
+	logDebugInfo();
 
 	animationFrame = requestAnimationFrame(run);
 }
@@ -253,7 +254,7 @@ function calculateThetas() {
 	const gamma = lawOfCosines(r, a, b);
 	theta2 = -Math.PI + gamma;
 
-	theta3 = -theta2 - theta1 + degreesToRadians(45);
+	theta3 = -theta2 - theta1 + degreesToRadians(+document.getElementById('gripper').value);
 }
 
 function xPosRelativeToCenterPoint() {
@@ -264,14 +265,27 @@ function yPosRelativeToCenterPoint() {
 	return canvasHeight / 2 - effector.yPos;
 }
 
-function logDebugInfo() {
-	console.log(radiansToDegrees(theta1), radiansToDegrees(theta2), radiansToDegrees(theta3));
-}
-
 function radiansToDegrees(x) {
 	return x * 180 / Math.PI;
 }
 
 function lawOfCosines(a, b, c) {
 	return Math.acos((b**2 + c**2 - a**2) / (2 * b * c))
+}
+
+function updateDashbaord() {
+	setTextById('x', effector.xPos);
+	setTextById('y', effector.yPos);
+	setTextById('theta-1', radiansToDegrees(theta1).toFixed(3));
+	setTextById('theta-2', radiansToDegrees(theta2).toFixed(3));
+	setTextById('theta-3', radiansToDegrees(theta3).toFixed(3));
+
+}
+
+function setTextById(id, text) {
+	document.getElementById(id).innerText = text;
+}
+
+function logDebugInfo() {
+	console.log(radiansToDegrees(theta1), radiansToDegrees(theta2), radiansToDegrees(theta3));
 }

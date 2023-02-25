@@ -4,10 +4,39 @@
   <head>
     <meta charset="utf-8"/>
     <title>Arm Simulation</title>
-    <style></style>
+    <style>
+      table {
+        width: 512px;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      th, td {
+        border: 1px solid black;
+        text-align: center;
+      }
+    </style>
   </head>
   <body>
     <canvas id="canvas" style="border: 1px solid black"></canvas>
+    <table>
+      <tr>
+        <th>X</th>
+        <th>Y</th>
+        <th>Theta 1</th>
+        <th>Theta 2</th>
+        <th>Theta 3</th>
+        <th>Gripper</th>
+      </tr>
+      <tr>
+        <td id="x"></td>
+        <td id="y"></td>
+        <td id="theta-1"></td>
+        <td id="theta-2"></td>
+        <td id="theta-3"></td>
+        <td><input  id="gripper" type="text" style="width: 32px" value="45"/></td>
+      </tr>
+    </table>
 
     <script src="arm-simulation.js"></script>
   </body>
